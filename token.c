@@ -1,41 +1,70 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
-int main(int argc, char *argv[]) {
+char **split (char *s, char *delimiter, int *cap, int *error){
 
+    char **array;
+    *error=0;
+    errno=0;
+    char *token;
+    int numveces=0;
+    array = (char**) malloc(sizeof(char*));
 
-    //char *meses = "enero,febrero,marzo,junio,julio";
-    char meses[] = "enero,febrero,marzo,junio,julio,agosto";
-
-    printf("los meses son %s\n", meses);
-
-    char **mes = (char **)malloc(5 * sizeof(char *));
-/*
-    mes[0] = strtok(meses, ",");
-    mes[1] = strtok(NULL, ",");
-    mes[2] = strtok(NULL, ",");
-    mes[3] = strtok(NULL, ",");
-    mes[4] = strtok(NULL, ",");*/
-
-    // Tokenize the string and populate the mes array using a loop
-    int i = 0;
-    char *token = strtok(meses, ",");
-    while (token != NULL) {
-        mes[i] = token;
-        token = strtok(NULL, ",");
-        i++;
-    }
-    mes[i]=NULL;
-
-
-    for (int x = 0; x < i; x++) {
-        printf("mes %d, %s\n", x, mes[x]);
+    *cap = 1;
+    if(array==NULL){
+        *error=errno;
+        return NULL;
     }
 
-    // Don't forget to free the allocated memory
-    free(mes);
+    if(s==NULL||delimiter==NULL){
+        array[numveces]=NULL;
+        return array;
+    }
+
+    token=strtok(s, delimiter);
+    while(token!=NULL){
+
+        array[numveces]= strdup(token);
+
+        if(array[numveces]==NULL){
+            *error=errno;
+            return NULL;
+        }
+        printf("Numero de veces %d, token %s, cap %d\n", numveces, token, *cap); 
+        numveces++;
+
+        if(*cap<=numveces){
+          
+            //array=(char**) realloc(array, 2*sizeof(array));
+             array=(char **) realloc(array, (*cap) * 2* sizeof(char *));
+             *cap=(*cap)*2;
+             if(array==NULL){
+                *error=errno;
+                return NULL;
+             }
+        }
+        token=strtok(NULL, delimiter);
+    }
+
+    array[numveces]=NULL;
+    return array;
+
+}
+
+void freesplit(char **array, int cap){
     
-    return 0;
+    if(cap==0){
+        free(array);
+        return;
+    }
+    
+    for(int x=0; x<cap-1; x++){
+        free(array[x]);
+    }
+
+    free(array);
+    return;
 }
 
