@@ -32,7 +32,7 @@ char **split (char *s, char *delimiter, int *cap, int *error){
             *error=errno;
             return NULL;
         }
-        printf("Numero de veces %d, token %s, cap %d\n", numveces, token, *cap); 
+        //printf("Numero de veces %d, token %s, cap %d\n", numveces, token, *cap); 
         numveces++;
 
         if(*cap<=numveces){
