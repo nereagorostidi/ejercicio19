@@ -11,6 +11,11 @@ void mysignalhandler(){
     printf("Adios");
     exit(EXIT_SUCCESS);
 }
+
+void liberar(){
+    printf("Ejecutando liberar");
+    free(buffer);
+}
 int main (int argc, char* argv[]){
 
     //TESTEO PROBAR FUNCIONES 
@@ -32,6 +37,10 @@ int main (int argc, char* argv[]){
     char **palabras;
     int t=0;
     int error=0;
+    pid_t pid_dead;
+    int status;
+
+    atexit(liberar);
 
     signal(SIGINT, &mysignalhandler);
     printf("Shell menu. Introduce a command, EXIT or CTRL+C for exit.\n");
@@ -45,13 +54,13 @@ int main (int argc, char* argv[]){
             exit(EXIT_SUCCESS);
         }
 
-        if(strcmp(buffer, "")){
+        if(strcmp(buffer, "")){ // Si he escrito algo
 
             int fd[2];
             pipe(fd);
             int pid=fork();
             
-            if(pid==0){
+            if(pid==0){ // Ejecuto comando shell
                 close(1);
                 dup2(fd[1], STDOUT_FILENO);
                 close(fd[0]);
@@ -61,9 +70,9 @@ int main (int argc, char* argv[]){
                 perror("No existe ese comando");
                 exit(EXIT_SUCCESS);
 
-            }
+            } // Fin de hijo
 
-            else{
+            else{ // Comienzo Padre
                 close(fd[1]);       //cerramos extremo escritura del pipe 
                 int num_bytes;
                 char readbuffer[2048];
@@ -72,17 +81,22 @@ int main (int argc, char* argv[]){
                     printf("%s\n", salida);
                     write(STDOUT_FILENO, readbuffer, num_bytes);
                     //printf("%s\n", readbuffer);
-
-                }
+               
+                } // Fin del while del read buffer 
                 
                 close(fd[0]);       //cerramos extremo lectura del pipe 
-            }
+              //  exit(EXIT_SUCCESS);
 
+            } // Fin del padre
 
-        }
-        else{
-            printf("no tengo que hacer ningun comando");
-        }
+            pid_dead=wait(&status);
+            printf("My son %i died with status %d\n", pid_dead, WEXITSTATUS(status)); 
 
-    }
+           } // Fin de comparacion de si he escrito algo en en shell
+
+     } // Fin de While del getline (de lectura de comandos desde el stdin))
+
+  exit(EXIT_SUCCESS);
  }
+
+
